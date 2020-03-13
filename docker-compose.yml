@@ -1,0 +1,49 @@
+# Per ora ho visto solo questa versione di file yaml, non so quindi con precisione quali differenze hanno gli altri
+version: "2"
+
+
+services:
+  app4dev: 
+    #Primo container del compose, il Wildfly, è tristemente necessario specificare nuovamente alcune variabili
+    container_name: "app4dev"
+    image: "borisbrizzi/wildfly4dev:latest" # basato sull'immagine ufficiale Wildfly16.0.0.Final rilsciata e mantenuta da JBOSS
+    environment:
+      - WILDFLY_USER=admin
+      - WILDFLY_PASS=password
+      - DB_NAME=sample
+      - DB_USER=mysql
+      - DB_PASS=mysql
+      - DB_URI=db:3306
+    depends_on:
+    # indico la dipendenza da un'altra image ( "db", definita sotto, che viene così avviata prima di wildfly)
+    - db4dev
+    volumes: 
+    # binding fra una cartella locale e la cartella di deploy di wildfly internamente al container
+    - ./workdir/deploy/wildfly/:/opt/jboss/wildfly/standalone/deployments/:rw
+    ports:
+    # binding delle porte usate per comunicare con wildfly, tiene corrispondenza fra le porte del localhost e quelle del container
+    #es: 12560:8080 permette di "instradare" cioè che arriva alla porta 12560 del localhost alla porta 8080 del container "app"
+      - "8080:8080" # application
+      - "9990:9990" # admin console
+      - "5005:5005" # debug port
+
+  db4dev:
+    #Secondo container, db, contenente un MySQL 5.7 tutto funziona come sopra, tranne che qui non ci sono "depends_on"
+    container_name: "db4dev"
+    image: "mysql:5.7" # direttamente l'immagine ufficiale
+    environment:
+      - MYSQL_DATABASE=sample
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
+      - MYSQL_ROOT_PASSWORD=supersecret
+    volumes:
+      - ./workdir/db/init/:/docker-entrypoint-initdb.d/ # init database
+      - ./workdir/db/data/:/var/lib/mysql/              # data storage
+    ports:
+      - "3306:3306" # permette accesso al DB sul container da locale (es. DBeaver)
+
+# i network abilitano la comunicazione fra containers internamente al container di compose
+# se ne possono definire di custom, in questo caso si usa il network di default con funzione di bridge.      
+networks:
+    default:
+        driver: bridge
