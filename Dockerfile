@@ -31,6 +31,7 @@ RUN $JBOSS_HOME/bin/add-user.sh -u $WILDFLY_USER -p $WILDFLY_PASS --silent
 # Configurazione di Wildfly, una volta attivato si usa il JbossCLI
 # per aggiungere i settaggi necessari ad eseguire l'applicazione che sarà deployata
 # Le azioni sono spiegate negli "echo"
+# In questa versione come datasource si usa ExampleDS, quella fornita di default sui wildfly
 RUN echo "=> Starting WildFly server" && \
       bash -c '$JBOSS_HOME/bin/standalone.sh &' && \
     echo "=> Waiting for the server to boot" && \
@@ -41,18 +42,6 @@ RUN echo "=> Starting WildFly server" && \
       $JBOSS_CLI --connect --command="module add --name=com.mysql --resources=/tmp/mysql-connector-java-${MYSQL_VERSION}.jar --dependencies=javax.api,javax.transaction.api" && \
     echo "=> Adding MySQL driver" && \
       $JBOSS_CLI --connect --command="/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql)" && \
-    echo "=> Adding main Datasource" && \
-      $JBOSS_CLI --connect --command="data-source add \
-        --name=${DB_NAME}DS \
-        --jndi-name=java:/jdbc/datasources/${DB_NAME}DS \
-        --user-name=${DB_USER} \
-        --password=${DB_PASS} \
-        --driver-name=mysql \
-        --connection-url=jdbc:mysql://${DB_URI}/${DB_NAME} \
-        --use-ccm=false \
-        --max-pool-size=25 \
-        --blocking-timeout-wait-millis=5000 \
-        --enabled=true" && \
     echo "=> Shutting down WildFly and Cleaning up" && \
       $JBOSS_CLI --connect --command=":shutdown" && \
       rm -rf $JBOSS_HOME/standalone/configuration/standalone_xml_history/ $JBOSS_HOME/standalone/log/* && \
