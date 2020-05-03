@@ -17,8 +17,8 @@ ENV DEPLOYMENT_DIR /opt/jboss/wildfly/standalone/deployments/
 # Qui si pre-impostano quelli che saranno i parametri (fra cui la versione) del DB a cui ci si vuole collegare
 # E' un po' brutto doverlo specificare a questo livello ma pare inevitabile, visto il seguito
 ENV DB_NAME sample
-ENV DB_USER mysql
-ENV DB_PASS mysql
+ENV DB_USER java-client
+ENV DB_PASS password
 ENV DB_URI db:3306
 ENV MYSQL_VERSION 5.1.25
 
@@ -42,6 +42,17 @@ RUN echo "=> Starting WildFly server" && \
       $JBOSS_CLI --connect --command="module add --name=com.mysql --resources=/tmp/mysql-connector-java-${MYSQL_VERSION}.jar --dependencies=javax.api,javax.transaction.api" && \
     echo "=> Adding MySQL driver" && \
       $JBOSS_CLI --connect --command="/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql)" && \
+    echo "=> Adding main Datasource" && \
+      $JBOSS_CLI --connect --command="data-source add \
+        --name=${DB_NAME}DS \
+        --jndi-name=java:/myFirstJavaEeDs \
+        --user-name=${DB_USER} \
+        --password=${DB_PASS} \
+        --driver-name=mysql \
+        --connection-url=jdbc:mysql://${DB_URI}/java-ee-schema?serverTimezone=UTC \
+        --use-ccm=false \
+        --blocking-timeout-wait-millis=5000 \
+        --enabled=true" && \
     echo "=> Shutting down WildFly and Cleaning up" && \
       $JBOSS_CLI --connect --command=":shutdown" && \
       rm -rf $JBOSS_HOME/standalone/configuration/standalone_xml_history/ $JBOSS_HOME/standalone/log/* && \

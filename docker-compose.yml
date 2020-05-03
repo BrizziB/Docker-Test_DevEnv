@@ -4,9 +4,9 @@ version: "2"
 
 services:
   app4dev: 
-    #Primo container del compose, il Wildfly, è tristemente necessario specificare nuovamente alcune variabili
+    #Primo container del compose, il Wildfly, è purtroppo necessario specificare nuovamente alcune variabili
     container_name: "app4dev"
-    image: "borisbrizzi/wildfly4dev:latest" # basato sull'immagine ufficiale Wildfly16.0.0.Final rilsciata e mantenuta da JBOSS
+    image: "borisbrizzi/wildfly4dev:latest" # basato su una customizzazione leggera dell'immagine ufficiale Wildfly16.0.0.Final rilsciata e mantenuta da JBOSS
     environment:
       - WILDFLY_USER=admin
       - WILDFLY_PASS=password
@@ -22,7 +22,7 @@ services:
     - ./workdir/deploy/wildfly/:/opt/jboss/wildfly/standalone/deployments/:rw
     ports:
     # binding delle porte usate per comunicare con wildfly, tiene corrispondenza fra le porte del localhost e quelle del container
-    #es: 12560:8080 permette di "instradare" cioè che arriva alla porta 12560 del localhost alla porta 8080 del container "app"
+    #es: y:x permette di "instradare" ciò che arriva alla porta y del localhost alla porta x del container "app"
       - "8080:8080" # application
       - "9990:9990" # admin console
       - "5005:5005" # debug port
@@ -40,7 +40,7 @@ services:
       - ./workdir/db/init/:/docker-entrypoint-initdb.d/ # init database
       - ./workdir/db/data/:/var/lib/mysql/              # data storage
     ports:
-      - "3306:3306" # permette accesso al DB sul container da locale (es. DBeaver)
+      - "3306:3306" # permette accesso al DB sul container da locale
 
 # i network abilitano la comunicazione fra containers internamente al container di compose
 # se ne possono definire di custom, in questo caso si usa il network di default con funzione di bridge.      
