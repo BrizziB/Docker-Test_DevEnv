@@ -16,7 +16,7 @@ ENV DEPLOYMENT_DIR /opt/jboss/wildfly/standalone/deployments/
 # for Database
 # Qui si pre-impostano quelli che saranno i parametri (fra cui la versione) del DB a cui ci si vuole collegare
 # E' un po' brutto doverlo specificare a questo livello ma pare inevitabile, visto il seguito
-ENV DB_NAME sample
+ENV DB_NAME MySQL
 ENV DB_USER java-client
 ENV DB_PASS password
 ENV DB_URI db:3306
@@ -31,7 +31,6 @@ RUN $JBOSS_HOME/bin/add-user.sh -u $WILDFLY_USER -p $WILDFLY_PASS --silent
 # Configurazione di Wildfly, una volta attivato si usa il JbossCLI
 # per aggiungere i settaggi necessari ad eseguire l'applicazione che sarà deployata
 # Le azioni sono spiegate negli "echo"
-# In questa versione come datasource si usa ExampleDS, quella fornita di default sui wildfly
 RUN echo "=> Starting WildFly server" && \
       bash -c '$JBOSS_HOME/bin/standalone.sh &' && \
     echo "=> Waiting for the server to boot" && \
